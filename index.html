@@ -2,63 +2,46 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>AR.js with GLB Model and Scale Buttons</title>
+    <title>AR.js with Video on Hiro Marker</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
     <style>
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10;
-      }
-      button {
-        padding: 10px 20px;
-        margin: 5px;
-        font-size: 16px;
-      }
+      body { margin: 0; overflow: hidden; }
     </style>
   </head>
-  <body style="margin: 0; overflow: hidden;">
+  <body>
 
-    <!-- Control buttons -->
-    <div id="controls">
-      <button onclick="scaleModel(1.2)">Scale Up</button>
-      <button onclick="scaleModel(0.8)">Scale Down</button>
-    </div>
-
-    <!-- A-Frame scene -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+      <!-- Preload video asset -->
       <a-assets>
-        <a-asset-item id="mymodel" src="1.glb"></a-asset-item>
+        <video id="myVideo" src="video1.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
       </a-assets>
 
-      <a-marker preset="hiro">
-        <a-gltf-model
-          id="model"
-          src="#mymodel"
-          scale="0.5 0.5 0.5"
+      <!-- Marker and video plane -->
+      <a-marker preset="hiro" id="marker">
+        <a-video
+          src="#myVideo"
+          width="1"
+          height="0.6"
           position="0 0 0"
-          rotation="0 0 0"
-        ></a-gltf-model>
+          rotation="-90 0 0"
+        ></a-video>
       </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      function scaleModel(factor) {
-        const model = document.querySelector('#model');
-        if (!model) return;
-        const currentScale = model.getAttribute('scale');
-        const newScale = {
-          x: currentScale.x * factor,
-          y: currentScale.y * factor,
-          z: currentScale.z * factor
-        };
-        model.setAttribute('scale', `${newScale.x} ${newScale.y} ${newScale.z}`);
-      }
+      const marker = document.querySelector("#marker");
+      const video = document.querySelector("#myVideo");
+
+      marker.addEventListener("markerFound", () => {
+        video.play();
+      });
+
+      marker.addEventListener("markerLost", () => {
+        video.pause();
+      });
     </script>
   </body>
 </html>
