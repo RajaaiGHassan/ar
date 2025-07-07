@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body style="margin : 0px; overflow: hidden;">
+    <a-scene embedded arjs="sourceType: webcam;">
+      
+      <!-- Define assets (your video) -->
+      <a-assets>
+        <video id="myVideo" src="video1.mp4" autoplay loop="true" preload="auto" crossorigin="anonymous"></video>
+      </a-assets>
+
+      <!-- Marker with Hiro preset -->
+      <a-marker preset="hiro">
+        <!-- Display the video as a texture on a plane -->
+        <a-video 
+          src="#myVideo" 
+          width="1" 
+          height="0.5625" 
+          rotation="-90 0 0">
+        </a-video>
+      </a-marker>
+
+      <!-- Static camera -->
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
