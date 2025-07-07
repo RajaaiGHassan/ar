@@ -2,29 +2,41 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>AR.js with Interactive Video on Hiro Marker</title>
+    <title>GPS AR Video Player</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
     <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
+      body { margin: 0; overflow: hidden; }
       #controls {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        z-index: 999;
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 8px;
+        display: flex;
+        gap: 8px;
       }
       #controls button {
-        margin-right: 10px;
-        font-size: 18px;
+        color: white;
+        background: #333;
+        border: none;
         padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+    <!-- AR Scene -->
+    <a-scene
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      vr-mode-ui="enabled: false"
+    >
+      <a-camera gps-camera rotation-reader></a-camera>
+
       <a-assets>
         <video
           id="myVideo"
@@ -36,80 +48,53 @@
         ></video>
       </a-assets>
 
-      <a-marker preset="hiro" id="marker">
-        <a-video
-          src="#myVideo"
-          width="1"
-          height="0.6"
-          position="0 0 0"
-          rotation="-90 0 0"
-        ></a-video>
-      </a-marker>
-
-      <a-entity camera></a-entity>
+      <a-video
+        id="videoPlane"
+        gps-entity-place="latitude: 41.443139; longitude: 2.168695;"
+        src="#myVideo"
+        width="2"
+        height="1"
+        rotation="0 180 0"
+        scale="1 1 1"
+      ></a-video>
     </a-scene>
 
+    <!-- Controls -->
     <div id="controls">
-      <button id="scaleUp">Scale +</button>
-      <button id="scaleDown">Scale -</button>
-      <button id="resetScale">Reset</button>
+      <button id="playBtn">Play</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="restartBtn">Restart</button>
+      <button id="scaleUpBtn">Scale +</button>
+      <button id="scaleDownBtn">Scale −</button>
     </div>
 
     <script>
-      const marker = document.querySelector("#marker");
-      const video = document.querySelector("#myVideo");
-      const videoEntity = document.querySelector("a-video");
+      const video = document.getElementById('myVideo');
+      const videoPlane = document.getElementById('videoPlane');
 
-      let currentScale = 1;
-      const scaleStep = 0.1;
+      let scaleFactor = 1;
 
-      // Play/pause on marker found/lost
-      marker.addEventListener("markerFound", () => {
-        // Only play if user interacted before (some browsers block autoplay)
-        if (video.paused) video.play().catch(() => {});
+      document.getElementById('playBtn').addEventListener('click', () => {
+        video.play();
       });
-      marker.addEventListener("markerLost", () => {
+
+      document.getElementById('pauseBtn').addEventListener('click', () => {
         video.pause();
       });
 
-      // Toggle play/pause on video click
-      videoEntity.addEventListener("click", () => {
-        if (video.paused) {
-          video.play();
-        } else {
-          video.pause();
-        }
+      document.getElementById('restartBtn').addEventListener('click', () => {
+        video.currentTime = 0;
+        video.play();
       });
 
-      // Adjust width based on video aspect ratio after metadata loaded
-      video.addEventListener("loadedmetadata", () => {
-        const aspect = video.videoWidth / video.videoHeight;
-        const height = 0.6;
-        const width = height * aspect;
-        videoEntity.setAttribute("width", width);
-        videoEntity.setAttribute("height", height);
+      document.getElementById('scaleUpBtn').addEventListener('click', () => {
+        scaleFactor += 0.2;
+        videoPlane.setAttribute('scale', `${scaleFactor} ${scaleFactor} ${scaleFactor}`);
       });
 
-      // Scale controls
-      document.getElementById("scaleUp").addEventListener("click", () => {
-        currentScale += scaleStep;
-        videoEntity.setAttribute(
-          "scale",
-          `${currentScale} ${currentScale} ${currentScale}`
-        );
-      });
-
-      document.getElementById("scaleDown").addEventListener("click", () => {
-        currentScale = Math.max(0.1, currentScale - scaleStep);
-        videoEntity.setAttribute(
-          "scale",
-          `${currentScale} ${currentScale} ${currentScale}`
-        );
-      });
-
-      document.getElementById("resetScale").addEventListener("click", () => {
-        currentScale = 1;
-        videoEntity.setAttribute("scale", "1 1 1");
+      document.getElementById('scaleDownBtn').addEventListener('click', () => {
+        scaleFactor = Math.max(0.2, scaleFactor - 0.2);
+        videoPlane.setAttribute('scale', `${scaleFactor} ${scaleFactor} ${scaleFactor}`);
       });
     </script>
   </body>
