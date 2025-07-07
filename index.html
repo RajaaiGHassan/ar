@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <title>AR.js with Video on Hiro Marker</title>
+    <meta charset="utf-8" />
+    <title>AR.js with Interactive Video on Hiro Marker</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
     <style>
-      body { margin: 0; overflow: hidden; }
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #controls {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 999;
+      }
+      #controls button {
+        margin-right: 10px;
+        font-size: 18px;
+        padding: 8px 12px;
+      }
     </style>
   </head>
   <body>
-
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-      <!-- Preload video asset -->
       <a-assets>
-        <video id="myVideo" src="video1.mp4" preload="auto" loop crossorigin="anonymous" playsinline></video>
+        <video
+          id="myVideo"
+          src="video1.mp4"
+          preload="auto"
+          loop
+          crossorigin="anonymous"
+          playsinline
+        ></video>
       </a-assets>
 
-      <!-- Marker and video plane -->
       <a-marker preset="hiro" id="marker">
         <a-video
           src="#myVideo"
@@ -31,16 +49,67 @@
       <a-entity camera></a-entity>
     </a-scene>
 
+    <div id="controls">
+      <button id="scaleUp">Scale +</button>
+      <button id="scaleDown">Scale -</button>
+      <button id="resetScale">Reset</button>
+    </div>
+
     <script>
       const marker = document.querySelector("#marker");
       const video = document.querySelector("#myVideo");
+      const videoEntity = document.querySelector("a-video");
 
+      let currentScale = 1;
+      const scaleStep = 0.1;
+
+      // Play/pause on marker found/lost
       marker.addEventListener("markerFound", () => {
-        video.play();
+        // Only play if user interacted before (some browsers block autoplay)
+        if (video.paused) video.play().catch(() => {});
       });
-
       marker.addEventListener("markerLost", () => {
         video.pause();
+      });
+
+      // Toggle play/pause on video click
+      videoEntity.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+
+      // Adjust width based on video aspect ratio after metadata loaded
+      video.addEventListener("loadedmetadata", () => {
+        const aspect = video.videoWidth / video.videoHeight;
+        const height = 0.6;
+        const width = height * aspect;
+        videoEntity.setAttribute("width", width);
+        videoEntity.setAttribute("height", height);
+      });
+
+      // Scale controls
+      document.getElementById("scaleUp").addEventListener("click", () => {
+        currentScale += scaleStep;
+        videoEntity.setAttribute(
+          "scale",
+          `${currentScale} ${currentScale} ${currentScale}`
+        );
+      });
+
+      document.getElementById("scaleDown").addEventListener("click", () => {
+        currentScale = Math.max(0.1, currentScale - scaleStep);
+        videoEntity.setAttribute(
+          "scale",
+          `${currentScale} ${currentScale} ${currentScale}`
+        );
+      });
+
+      document.getElementById("resetScale").addEventListener("click", () => {
+        currentScale = 1;
+        videoEntity.setAttribute("scale", "1 1 1");
       });
     </script>
   </body>
